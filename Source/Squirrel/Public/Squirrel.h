@@ -115,7 +115,7 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override {}
 	virtual void Deinitialize() override {}
 
-	// Get a new position for a whisperer that is created during gameplay.
+	// Get a new position for a Squirrel that is created during gameplay.
 	int32 NewPosition();
 
 	static uint32 GetGlobalSeed();
