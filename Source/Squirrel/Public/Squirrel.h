@@ -16,10 +16,18 @@ struct SQUIRREL_API FSquirrelState
 	/** Location along sequence. Use this to "scrub" generation forward and backward. */
 	UPROPERTY(BlueprintReadOnly, EditInstanceOnly, Category = "SquirrelState")
 	int32 Position = 0;
+
+#if WITH_EDITOR
+	void RandomizeState();
+#endif
 };
 
 namespace Squirrel
 {
+	uint32 GetGlobalSeed();
+
+	void SetGlobalSeed(uint32 Seed);
+
 	int32 NextInt32(FSquirrelState& State);
 
 	int32 NextInt32(FSquirrelState& State, const int32 Max);
@@ -35,7 +43,7 @@ namespace Squirrel
 	/**
 	 * Roll for a deterministic, but random chance of an event occurring.
 	 *
-	 * @param State Squirrel position & seed
+	 * @param State Squirrel position
 	 * @param Roll The resulting value from the roll. Will always be a value between 0 and 100
 	 * @param Chance The percentage chance for the event to occur. Roll must meet or exceed this to succeed.
 	 * @param RollModifier A modifier to adjust the likelihood of the occurence. Must be a value between -100 and 100
@@ -52,7 +60,7 @@ namespace Squirrel
 /**
  * A noise-based random number generator using SquirrelNoise5
  */
-UCLASS(BlueprintType, EditInlineNew)
+UCLASS(BlueprintType, EditInlineNew, CollapseCategories)
 class SQUIRREL_API USquirrel final : public UObject
 {
 	GENERATED_BODY()
@@ -112,15 +120,17 @@ class SQUIRREL_API USquirrelSubsystem : public UEngineSubsystem
 	GENERATED_BODY()
 
 public:
-	virtual void Initialize(FSubsystemCollectionBase& Collection) override {}
-	virtual void Deinitialize() override {}
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	virtual void Deinitialize() override;
 
 	// Get a new position for a Squirrel that is created during gameplay.
 	int32 NewPosition();
 
-	static uint32 GetGlobalSeed();
+	UFUNCTION(BlueprintCallable, Category = "Squirrel")
+	int64 GetGlobalSeed() const;
 
-	static void SetGlobalSeed(uint32 Seed);
+	UFUNCTION(BlueprintCallable, Category = "Squirrel")
+	void SetGlobalSeed(int64 NewSeed);
 
 private:
 	UPROPERTY(Transient)

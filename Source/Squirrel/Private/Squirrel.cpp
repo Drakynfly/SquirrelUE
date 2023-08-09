@@ -7,8 +7,18 @@ DEFINE_LOG_CATEGORY(LogSquirrel)
 
 namespace Squirrel
 {
-	// The master seed used to set the game's world to a single seed that controls all others.
+	// The master seed used to set the game world to a consistant state that can be returned to.
 	static uint32 GWorldSeed = 0;
+
+	uint32 GetGlobalSeed()
+	{
+		return GWorldSeed;
+	}
+
+	void SetGlobalSeed(const uint32 Seed)
+	{
+		GWorldSeed = Seed;
+	}
 
 	int32 NextInt32(FSquirrelState& State)
 	{
@@ -68,12 +78,22 @@ namespace Squirrel
 		// Otherwise return the whole number plus the random weighted bool.
 		return Whole + (Remainder >= NextReal(State));
 	}
+
+	// @todo Min and Max must over cover *half* the int32 range, or it will cause an overflow in FMath::RandRange
+	// look into alternate ways to generate random values that don't have this limit
+	static constexpr int32 NewPositionMin = (TNumericLimits<int32>::Min() / 2) + 1;
+	static constexpr int32 NewPositionMax = TNumericLimits<int32>::Max() / 2;
 }
 
-#define Squirrel_NewPositionMin TNumericLimits<int32>::Min()
-#define Squirrel_NewPositionMax TNumericLimits<int32>::Max()
-
 #define LOCTEXT_NAMESPACE "Squirrel"
+
+#if WITH_EDITOR
+void FSquirrelState::RandomizeState()
+{
+	// It is allowable and expected to get a non-seeded random value in the editor
+	Position = FMath::RandRange(Squirrel::NewPositionMin, Squirrel::NewPositionMax);
+}
+#endif
 
 USquirrel::USquirrel()
 {
@@ -87,7 +107,7 @@ void USquirrel::PostInitProperties()
 	{
 		if (const UWorld* World = GEngine->GetWorldFromContextObject(GetTypedOuter<AActor>(), EGetWorldErrorMode::ReturnNull))
 		{
-			// At runtime, new Squirrels should be given a random (but still seeded) starting position
+			// At runtime, Squirrels should be given random (but still seeded) positions
 			if (World->HasBegunPlay())
 			{
 				if (USquirrelSubsystem* Subsystem = GEngine->GetEngineSubsystem<USquirrelSubsystem>())
@@ -99,8 +119,7 @@ void USquirrel::PostInitProperties()
 			// In the editor, they should be given a new one in any-case
 			else if (GIsEditor)
 			{
-				// It is allowable and expected to get a non-seeded random value in the editor
-				State.Position = FMath::RandRange(Squirrel_NewPositionMin, Squirrel_NewPositionMax);
+				State.RandomizeState();
 			}
 #endif
 		}
@@ -152,19 +171,36 @@ int32 USquirrel::RoundWithWeightByFraction(const double Value)
 	return Squirrel::RoundWithWeightByFraction(State, Value);
 }
 
+void USquirrelSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+	Super::Initialize(Collection);
+
+#if WITH_EDITOR
+	if (GIsEditor)
+	{
+		RuntimePositionsSquirrel.RandomizeState();
+	}
+#endif
+}
+
+void USquirrelSubsystem::Deinitialize()
+{
+	Super::Deinitialize();
+}
+
 int32 USquirrelSubsystem::NewPosition()
 {
-	return Squirrel::NextInt32InRange(RuntimePositionsSquirrel, Squirrel_NewPositionMin, Squirrel_NewPositionMax);
+	return Squirrel::NextInt32InRange(RuntimePositionsSquirrel, Squirrel::NewPositionMin, Squirrel::NewPositionMax);
 }
 
-uint32 USquirrelSubsystem::GetGlobalSeed()
+int64 USquirrelSubsystem::GetGlobalSeed() const
 {
-	return Squirrel::GWorldSeed;
+	return Squirrel::GetGlobalSeed();
 }
 
-void USquirrelSubsystem::SetGlobalSeed(const uint32 Seed)
+void USquirrelSubsystem::SetGlobalSeed(const int64 NewSeed)
 {
-	Squirrel::GWorldSeed = Seed;
+	Squirrel::SetGlobalSeed(NewSeed);
 }
 
 #undef LOCTEXT_NAMESPACE
