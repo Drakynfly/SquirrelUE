@@ -114,23 +114,54 @@ protected:
 };
 
 
+/**
+ * Combines the global seed and subsystem state into a easily serialized struct.
+ */
+USTRUCT(BlueprintType)
+struct FSquirrelWorldState
+{
+	GENERATED_BODY()
+
+	// The world's seed. This is the static value that seeds the game.
+	UPROPERTY()
+	uint32 GlobalSeed;
+
+	// The position of the Squirrel Subsystem.
+	UPROPERTY()
+	FSquirrelState RuntimeState;
+};
+
+
+/*
+ * This subsystem's primary responsibility to provide seeded positions for new USquirrels generated at runtime.
+ */
 UCLASS()
 class SQUIRREL_API USquirrelSubsystem : public UEngineSubsystem
 {
 	GENERATED_BODY()
 
+	friend USquirrel;
+
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
+protected:
 	// Get a new position for a Squirrel that is created during gameplay.
 	int32 NewPosition();
 
+public:
 	UFUNCTION(BlueprintCallable, Category = "Squirrel")
 	int64 GetGlobalSeed() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Squirrel")
 	void SetGlobalSeed(int64 NewSeed);
+
+	UFUNCTION(BlueprintCallable, Category = "Squirrel")
+	FSquirrelWorldState SaveWorldState() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Squirrel")
+	void LoadGameState(FSquirrelWorldState State);
 
 private:
 	UPROPERTY(Transient)

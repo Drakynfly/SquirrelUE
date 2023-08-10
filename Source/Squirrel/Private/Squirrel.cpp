@@ -203,4 +203,15 @@ void USquirrelSubsystem::SetGlobalSeed(const int64 NewSeed)
 	Squirrel::SetGlobalSeed(NewSeed);
 }
 
+FSquirrelWorldState USquirrelSubsystem::SaveWorldState() const
+{
+	return FSquirrelWorldState{Squirrel::GetGlobalSeed(), RuntimePositionsSquirrel };
+}
+
+void USquirrelSubsystem::LoadGameState(const FSquirrelWorldState State)
+{
+	Squirrel::SetGlobalSeed(State.GlobalSeed);
+	RuntimePositionsSquirrel = State.RuntimeState;
+}
+
 #undef LOCTEXT_NAMESPACE
