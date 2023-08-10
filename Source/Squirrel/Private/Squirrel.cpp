@@ -16,10 +16,56 @@
 
 DEFINE_LOG_CATEGORY(LogSquirrel)
 
+#define LOCTEXT_NAMESPACE "Squirrel"
+
 namespace Squirrel
 {
 	// The master seed used to set the game world to a consistant state that can be returned to.
 	static uint32 GWorldSeed = 0;
+
+	namespace Impl
+	{
+		constexpr uint32 SquirrelNoise5(FSquirrelState& State)
+		{
+			return ::SquirrelNoise5(State.Position++, GWorldSeed);
+		}
+	}
+
+	namespace Math
+	{
+		// The purpose of this function is to generate a random value in the full range of its type.
+		// RandRange functions like that of FMath can only generate values in the range of ( Min/2+1 -> Max/2 ).
+		template <typename T, typename RNG>
+		constexpr T MaxRand(RNG Engine)
+		{
+			union
+			{
+				T Total;
+				uint8 Pieces[sizeof(T)];
+			} Value;
+
+			for (size_t i = 0; i < sizeof Value.Pieces; i++)
+			{
+				Value.Pieces[i] = Engine();
+			}
+
+			return Value.Total;
+		}
+
+		// constexpr version of FMath::Ceil
+		constexpr int64 SqCeil(const double Value)
+		{
+			const int64 Int = static_cast<int64>(Value);
+			return Value > Int ? Int + 1 : Int;
+		}
+
+		// constexpr version of FMath::Floor
+		constexpr int64 SqFloor(const double Value)
+		{
+			const int64 Int = static_cast<int64>(Value);
+			return Value < Int ? Int - 1 : Int;
+		}
+	}
 
 	uint32 GetGlobalSeed()
 	{
@@ -31,56 +77,52 @@ namespace Squirrel
 		GWorldSeed = Seed;
 	}
 
-	int32 NextInt32(FSquirrelState& State)
+	constexpr int32 NextInt32(FSquirrelState& State, const int32 Max)
 	{
-		return static_cast<int32>(SquirrelNoise5(State.Position++, GWorldSeed));
+		return Max > 0 ? FMath::Min(FMath::TruncToInt(NextReal(State) * static_cast<double>(Max)), Max - 1) : 0;
 	}
 
-	int32 NextInt32(FSquirrelState& State, const int32 Max)
-	{
-		return Max > 0 ? FMath::Min(FMath::TruncToInt(NextReal(State) * static_cast<float>(Max)), Max - 1) : 0;
-	}
-
-	int32 NextInt32InRange(FSquirrelState& State, const int32 Min, const int32 Max)
+	constexpr int32 NextInt32InRange(FSquirrelState& State, const int32 Min, const int32 Max)
     {
+		// @todo Min and Max must only cover *half* the int32 range, or it will cause an overflow in (Max - Min)
+		// look into alternate ways to generate random values that don't have this limit
+
 		const int32 Range = (Max - Min) + 1;
 		return Min + NextInt32(State, Range);
     }
 
-	bool NextBool(FSquirrelState& State)
-	{
-		return SquirrelNoise5(State.Position++, GWorldSeed) % 2;
-	}
-
-	double NextReal(FSquirrelState& State)
+	constexpr double NextReal(FSquirrelState& State)
 	{
 		return Get1dNoiseZeroToOne(State.Position++, GWorldSeed);
 	}
 
-	double NextRealInRange(FSquirrelState& State, const double Min, const double Max)
+	constexpr double NextRealInRange(FSquirrelState& State, const double Min, const double Max)
 	{
+		// @todo Min and Max must only cover *half* the int32 range, or it will cause an overflow in (Max - Min)
+		// look into alternate ways to generate random values that don't have this limit
+
 		return Min + (Max - Min) * NextReal(State);
 	}
 
-	bool RollChance(FSquirrelState& State, double& Roll, const double Chance, const double RollModifier)
+	constexpr bool RollChance(FSquirrelState& State, double& Roll, const double Chance, const double RollModifier)
 	{
 		if (ensure((Chance >= 0.0) && (Chance <= 100.0)) ||
 			ensure((RollModifier >= -100.0) && (RollModifier <= 100.0)))
 		{
-			UE_LOG(LogSquirrel, Warning, TEXT("Bad inputs passed to USquirrel::RollChance - Chance: %f, Modifier: %f"), Chance, RollModifier);
+			// @todo log is broken with constexpr. fix/replace later
+			//UE_LOG(LogSquirrel, Warning, TEXT("Bad inputs passed to USquirrel::RollChance - Chance: %f, Modifier: %f"), Chance, RollModifier);
 		}
 
 		Roll = NextRealInRange(State, 0.0, 100.0 - RollModifier) + RollModifier;
 		return Roll >= Chance;
 	}
 
-	int32 RoundWithWeightByFraction(FSquirrelState& State, const double Value)
+	constexpr int32 RoundWithWeightByFraction(FSquirrelState& State, const double Value)
 	{
-		double const Whole = FMath::Floor(Value);
-		double const Remainder = Value - Whole;
+		const double Whole = Math::SqFloor(Value);
+		const double Remainder = Value - Whole;
 
 		// If the Remainder equals to 0.f then always return the whole number.
-		// @todo probably we want to remove this, right?? it will mess with determinism if this function doesnt *always* increment itself, no?
 		if (Remainder <= 0.0)
 		{
 			return Whole;
@@ -89,20 +131,14 @@ namespace Squirrel
 		// Otherwise return the whole number plus the random weighted bool.
 		return Whole + (Remainder >= NextReal(State));
 	}
-
-	// @todo Min and Max must over cover *half* the int32 range, or it will cause an overflow in FMath::RandRange
-	// look into alternate ways to generate random values that don't have this limit
-	static constexpr int32 NewPositionMin = (TNumericLimits<int32>::Min() / 2) + 1;
-	static constexpr int32 NewPositionMax = TNumericLimits<int32>::Max() / 2;
 }
 
-#define LOCTEXT_NAMESPACE "Squirrel"
-
 #if WITH_EDITOR
+
 void FSquirrelState::RandomizeState()
 {
-	// It is allowable and expected to get a non-seeded random value in the editor
-	Position = FMath::RandRange(Squirrel::NewPositionMin, Squirrel::NewPositionMax);
+	// It is allowable and expected to get a non-seeded random value in the editor, hence using 'Rand' here.
+	Position = Squirrel::Math::MaxRand<int32>(FMath::Rand);
 }
 #endif
 
@@ -159,7 +195,7 @@ int32 USquirrel::NextInt32InRange(const int32 Min, const int32 Max)
 
 bool USquirrel::NextBool()
 {
-	return Squirrel::NextBool(State);
+	return Squirrel::Next<bool>(State);
 }
 
 double USquirrel::NextReal()
@@ -201,7 +237,7 @@ void USquirrelSubsystem::Deinitialize()
 
 int32 USquirrelSubsystem::NewPosition()
 {
-	return Squirrel::NextInt32InRange(RuntimePositionsSquirrel, Squirrel::NewPositionMin, Squirrel::NewPositionMax);
+	return Squirrel::Next<int32>(RuntimePositionsSquirrel);
 }
 
 int64 USquirrelSubsystem::GetGlobalSeed() const

@@ -35,21 +35,42 @@ struct SQUIRREL_API FSquirrelState
 
 namespace Squirrel
 {
+	namespace Impl
+	{
+		UE_NODISCARD constexpr uint32 SquirrelNoise5(FSquirrelState& State);
+	}
+
 	uint32 GetGlobalSeed();
 
 	void SetGlobalSeed(uint32 Seed);
 
-	int32 NextInt32(FSquirrelState& State);
+	template <typename T>
+	UE_NODISCARD constexpr T Next(FSquirrelState& State)
+	{
+		static_assert(TIsIntegral<T>::Value, TEXT("T must be a integral type!"));
+		if constexpr (sizeof(T) >= 4)
+		{
+			return static_cast<T>(Impl::SquirrelNoise5(State));
+		}
+		else
+		{
+			return static_cast<T>(Impl::SquirrelNoise5(State) % TNumericLimits<T>::Max());
+		}
+	}
 
-	int32 NextInt32(FSquirrelState& State, const int32 Max);
+	template <>
+	UE_NODISCARD constexpr bool Next(FSquirrelState& State)
+	{
+		return !!(Impl::SquirrelNoise5(State) % 2);
+	}
 
-	int32 NextInt32InRange(FSquirrelState& State, const int32 Min, const int32 Max);
+	constexpr int32 NextInt32(FSquirrelState& State, const int32 Max);
 
-	bool NextBool(FSquirrelState& State);
+	constexpr int32 NextInt32InRange(FSquirrelState& State, const int32 Min, const int32 Max);
 
-	double NextReal(FSquirrelState& State);
+	constexpr double NextReal(FSquirrelState& State);
 
-	double NextRealInRange(FSquirrelState& State, const double Min, const double Max);
+	constexpr double NextRealInRange(FSquirrelState& State, const double Min, const double Max);
 
 	/**
 	 * Roll for a deterministic, but random chance of an event occurring.
@@ -59,13 +80,13 @@ namespace Squirrel
 	 * @param Chance The percentage chance for the event to occur. Roll must meet or exceed this to succeed.
 	 * @param RollModifier A modifier to adjust the likelihood of the occurence. Must be a value between -100 and 100
 	 */
-	bool RollChance(FSquirrelState& State, double& Roll, const double Chance, const double RollModifier);
+	UE_NODISCARD constexpr bool RollChance(FSquirrelState& State, double& Roll, const double Chance, const double RollModifier);
 
 	/**
 	 * Round a float to an int with a chanced result, where the result is determined by the decimal.
 	 * Example: Value = 3.25 has a 25% chance to return 4 and a 75% chance to return 3.
 	 */
-	int32 RoundWithWeightByFraction(FSquirrelState& State, double Value);
+	UE_NODISCARD constexpr int32 RoundWithWeightByFraction(FSquirrelState& State, double Value);
 }
 
 /**
