@@ -6,6 +6,17 @@
 
 #include "Squirrel.generated.h"
 
+/*
+ *					WARNING:
+ *	READ BEFORE MAKING ANY CHANGES THIS FILE:
+ *	This file generates seeded random numbers for
+ *	game code. Any changes made here may affect
+ *	generatation such that existing seeds no longer
+ *	function as they previously did. Only make
+ *	changes to this file, if you are aware of this,
+ *	understand what you are doing, or don't care!
+ */
+
 DECLARE_LOG_CATEGORY_EXTERN(LogSquirrel, Log, All)
 
 USTRUCT(BlueprintType)
