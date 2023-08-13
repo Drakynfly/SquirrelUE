@@ -64,14 +64,20 @@ FReply FSquirrelStateCustomization::OnRandomizeClicked()
 {
 	check(Position)
 
-	void* DataPtr;
-	Position->GetValueData(DataPtr);
+	FSquirrelState* DataPtr;
+	Position->GetValueData(reinterpret_cast<void*&>(DataPtr));
 
 	if (DataPtr)
 	{
-		FSquirrelState* StatePtr = static_cast<FSquirrelState*>(DataPtr);
+		DataPtr->RandomizeState();
+	}
 
-		StatePtr->RandomizeState();
+	TArray<UObject*> Outers;
+	Position->GetOuterObjects(Outers);
+	for (UObject* Outer : Outers)
+	{
+		// Notify the object that is has been modified so that undo/redo works.
+		Outer->Modify();
 	}
 
 	return FReply::Handled();
