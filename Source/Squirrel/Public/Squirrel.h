@@ -37,7 +37,8 @@ namespace Squirrel
 {
 	namespace Impl
 	{
-		UE_NODISCARD constexpr uint32 SquirrelNoise5(FSquirrelState& State);
+		// Direct access to calling SquirrelNoise5
+		SQUIRREL_API UE_NODISCARD constexpr uint32 SquirrelNoise5(int32& Position, uint32 Seed);
 	}
 
 	uint32 GetGlobalSeed();
@@ -50,18 +51,18 @@ namespace Squirrel
 		static_assert(TIsIntegral<T>::Value, TEXT("T must be a integral type!"));
 		if constexpr (sizeof(T) >= 4)
 		{
-			return static_cast<T>(Impl::SquirrelNoise5(State));
+			return static_cast<T>(Impl::SquirrelNoise5(State.Position, GetGlobalSeed()));
 		}
 		else
 		{
-			return static_cast<T>(Impl::SquirrelNoise5(State) % TNumericLimits<T>::Max());
+			return static_cast<T>(Impl::SquirrelNoise5(State.Position, GetGlobalSeed()) % TNumericLimits<T>::Max());
 		}
 	}
 
 	template <>
 	UE_NODISCARD constexpr bool Next(FSquirrelState& State)
 	{
-		return !!(Impl::SquirrelNoise5(State) % 2);
+		return !!(Impl::SquirrelNoise5(State.Position, GetGlobalSeed()) % 2);
 	}
 
 	constexpr int32 NextInt32(FSquirrelState& State, const int32 Max);
@@ -156,7 +157,7 @@ struct FSquirrelWorldState
 
 	// The world's seed. This is the static value that seeds the game.
 	UPROPERTY()
-	uint32 GlobalSeed;
+	uint32 GlobalSeed = 0;
 
 	// The position of the Squirrel Subsystem.
 	UPROPERTY()

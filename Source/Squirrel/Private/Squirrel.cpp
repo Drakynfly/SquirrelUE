@@ -25,9 +25,9 @@ namespace Squirrel
 
 	namespace Impl
 	{
-		constexpr uint32 SquirrelNoise5(FSquirrelState& State)
+		constexpr uint32 SquirrelNoise5(int32& Position, const uint32 Seed)
 		{
-			return ::SquirrelNoise5(State.Position++, GWorldSeed);
+			return ::SquirrelNoise5(Position++, Seed);
 		}
 	}
 
@@ -98,7 +98,7 @@ namespace Squirrel
 
 	constexpr double NextRealInRange(FSquirrelState& State, const double Min, const double Max)
 	{
-		// @todo Min and Max must only cover *half* the int32 range, or it will cause an overflow in (Max - Min)
+		// @todo Min and Max must only cover *half* the double range, or it will cause an overflow in (Max - Min)
 		// look into alternate ways to generate random values that don't have this limit
 
 		return Min + (Max - Min) * NextReal(State);
