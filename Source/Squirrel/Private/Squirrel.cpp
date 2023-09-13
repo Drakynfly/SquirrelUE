@@ -67,6 +67,11 @@ namespace Squirrel
 		}
 	}
 
+	uint32 HashCombine(int32 A, const int32 B)
+	{
+		return Impl::SquirrelNoise5(A, B);
+	}
+
 	uint32 GetGlobalSeed()
 	{
 		return GWorldSeed;

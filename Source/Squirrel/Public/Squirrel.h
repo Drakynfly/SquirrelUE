@@ -38,8 +38,11 @@ namespace Squirrel
 	namespace Impl
 	{
 		// Direct access to calling SquirrelNoise5
-		SQUIRREL_API UE_NODISCARD constexpr uint32 SquirrelNoise5(int32& Position, uint32 Seed);
+		UE_NODISCARD constexpr uint32 SquirrelNoise5(int32& Position, uint32 Seed);
 	}
+
+	// Use SquirrelNoise to mangle two values together.
+	SQUIRREL_API uint32 HashCombine(int32 A, int32 B);
 
 	uint32 GetGlobalSeed();
 
