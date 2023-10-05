@@ -42,7 +42,7 @@ namespace Squirrel
 	}
 
 	// Use SquirrelNoise to mangle two values together.
-	SQUIRREL_API uint32 HashCombine(int32 A, int32 B);
+	SQUIRREL_API UE_NODISCARD uint32 HashCombine(int32 A, int32 B);
 
 	uint32 GetGlobalSeed();
 
