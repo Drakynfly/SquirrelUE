@@ -38,18 +38,18 @@ namespace Squirrel
 	namespace Impl
 	{
 		// Direct access to calling SquirrelNoise5
-		UE_NODISCARD constexpr uint32 SquirrelNoise5(int32& Position, uint32 Seed);
+		[[nodiscard]] constexpr uint32 SquirrelNoise5(int32& Position, uint32 Seed);
 	}
 
 	// Use SquirrelNoise to mangle two values together.
-	SQUIRREL_API UE_NODISCARD uint32 HashCombine(int32 A, int32 B);
+	SQUIRREL_API [[nodiscard]] uint32 HashCombine(int32 A, int32 B);
 
 	uint32 GetGlobalSeed();
 
 	void SetGlobalSeed(uint32 Seed);
 
 	template <typename T>
-	UE_NODISCARD constexpr T Next(FSquirrelState& State)
+	[[nodiscard]] constexpr T Next(FSquirrelState& State)
 	{
 		static_assert(TIsIntegral<T>::Value, TEXT("T must be a integral type!"));
 		if constexpr (sizeof(T) >= 4)
@@ -63,7 +63,7 @@ namespace Squirrel
 	}
 
 	template <>
-	UE_NODISCARD constexpr bool Next(FSquirrelState& State)
+	[[nodiscard]] constexpr bool Next(FSquirrelState& State)
 	{
 		return !!(Impl::SquirrelNoise5(State.Position, GetGlobalSeed()) % 2);
 	}
@@ -84,13 +84,13 @@ namespace Squirrel
 	 * @param Chance The percentage chance for the event to occur. Roll must meet or exceed this to succeed.
 	 * @param RollModifier A modifier to adjust the likelihood of the occurence. Must be a value between -100 and 100
 	 */
-	UE_NODISCARD constexpr bool RollChance(FSquirrelState& State, double& Roll, const double Chance, const double RollModifier);
+	[[nodiscard]] constexpr bool RollChance(FSquirrelState& State, double& Roll, const double Chance, const double RollModifier);
 
 	/**
 	 * Round a float to an int with a chanced result, where the result is determined by the decimal.
 	 * Example: Value = 3.25 has a 25% chance to return 4 and a 75% chance to return 3.
 	 */
-	UE_NODISCARD constexpr int32 RoundWithWeightByFraction(FSquirrelState& State, double Value);
+	[[nodiscard]] constexpr int32 RoundWithWeightByFraction(FSquirrelState& State, double Value);
 }
 
 /**
