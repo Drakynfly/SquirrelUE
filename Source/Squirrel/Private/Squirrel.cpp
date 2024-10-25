@@ -8,9 +8,9 @@
  *	READ BEFORE MAKING ANY CHANGES THIS FILE:
  *	This file generates seeded random numbers for
  *	game code. Any changes made here may affect
- *	generatation such that existing seeds no longer
+ *	generation such that existing seeds no longer
  *	function as they previously did. Only make
- *	changes to this file, if you are aware of this,
+ *	changes to this file if you are aware of this,
  *	understand what you are doing, or don't care!
  */
 
@@ -20,7 +20,7 @@ DEFINE_LOG_CATEGORY(LogSquirrel)
 
 namespace Squirrel
 {
-	// The master seed used to set the game world to a consistant state that can be returned to.
+	// The master seed used to set the game world to a consistent state that can be returned to.
 	static uint32 GWorldSeed = 0;
 
 	namespace Impl
@@ -133,7 +133,7 @@ namespace Squirrel
 			return Whole;
 		}
 
-		// Otherwise return the whole number plus the random weighted bool.
+		// Otherwise, return the whole number plus the random weighted bool.
 		return Whole + (Remainder >= NextReal(State));
 	}
 }
