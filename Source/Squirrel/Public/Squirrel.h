@@ -48,10 +48,12 @@ namespace Squirrel
 
 	void SetGlobalSeed(uint32 Seed);
 
-	template <typename T>
+	template <
+		typename T
+		UE_REQUIRES(TIsIntegral<T>::Value)
+	>
 	[[nodiscard]] constexpr T Next(FSquirrelState& State)
 	{
-		static_assert(TIsIntegral<T>::Value, TEXT("T must be a integral type!"));
 		if constexpr (sizeof(T) >= 4)
 		{
 			return static_cast<T>(Impl::SquirrelNoise5(State.Position, GetGlobalSeed()));
