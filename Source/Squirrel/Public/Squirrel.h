@@ -24,7 +24,7 @@ struct SQUIRREL_API FSquirrelState
 {
 	GENERATED_BODY()
 
-	/** Location along sequence. Use this to "scrub" generation forward and backward. */
+	/** Location in the noise. Use this to "scrub" generation forward and backward. */
 	UPROPERTY(BlueprintReadOnly, EditInstanceOnly, Category = "SquirrelState")
 	int32 Position = 0;
 
@@ -79,12 +79,13 @@ namespace Squirrel
 	constexpr double NextRealInRange(FSquirrelState& State, const double Min, const double Max);
 
 	/**
-	 * Roll for a deterministic, but random chance of an event occurring.
+	 * Roll for a deterministic chance of an event occurring.
 	 *
 	 * @param State Squirrel position
 	 * @param Roll The resulting value from the roll. Will always be a value between 0 and 100
 	 * @param Chance The percentage chance for the event to occur. Roll must meet or exceed this to succeed.
 	 * @param RollModifier A modifier to adjust the likelihood of the occurence. Must be a value between -100 and 100
+	 * @return True if the event should occur
 	 */
 	[[nodiscard]] constexpr bool RollChance(FSquirrelState& State, double& Roll, const double Chance, const double RollModifier);
 
@@ -130,11 +131,12 @@ public:
 	double NextRealInRange(const double Min, const double Max);
 
 	/**
-	 * Roll for a deterministic, but random chance of an event occurring.
+	 * Roll for a deterministic chance of an event occurring.
 	 *
 	 * @param Roll The resulting value from the roll. Will always be a value between 0 and 100
 	 * @param Chance The percentage chance for the event to occur. Roll must meet or exceed this to succeed.
 	 * @param RollModifier A modifier to adjust the likelihood of the occurence. Must be a value between -100 and 100
+	 * @return True if the event should occur
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Squirrel")
 	bool RollChance(double& Roll, const double Chance, const double RollModifier);
@@ -153,7 +155,7 @@ protected:
 
 
 /**
- * Combines the global seed and subsystem state into a easily serialized struct.
+ * Combines the global seed and subsystem state into an easily serialized struct.
  */
 USTRUCT(BlueprintType)
 struct FSquirrelWorldState
