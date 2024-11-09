@@ -6,7 +6,8 @@
 	"Description": "A simple plugin that integrates SquirrelNoise5 into an Unreal type",
 	"Category": "RNG",
 	"CreatedBy": "Guy (Drakynfly) Lundvall",
-	"CreatedByURL": "",
+	"CreatedByURL": "https://github.com/Drakynfly",
+	"SupportURL": "https://discord.gg/AAk9yNwKk8",
 	"DocsURL": "",
 	"MarketplaceURL": "",
 	"CanContainContent": false,
@@ -24,6 +25,5 @@
 			"Type": "Editor",
 			"LoadingPhase": "Default"
 		}
-	],
-	"SupportURL": "https://discord.gg/AAk9yNwKk8"
+	]
 }
