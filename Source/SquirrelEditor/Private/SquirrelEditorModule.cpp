@@ -26,7 +26,7 @@ void FSquirrelEditorModule::ShutdownModule()
 {
 	if (FModuleManager::Get().IsModuleLoaded("PropertyEditor"))
 	{
-		FPropertyEditorModule& Module = FModuleManager::Get().LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+		FPropertyEditorModule& Module = FModuleManager::Get().GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
 		Module.UnregisterCustomPropertyTypeLayout(FSquirrelState::StaticStruct()->GetFName());
 	}
 }
