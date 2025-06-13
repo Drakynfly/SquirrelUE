@@ -70,13 +70,13 @@ namespace Squirrel
 		return !!(Impl::SquirrelNoise5(State.Position, GetGlobalSeed()) % 2);
 	}
 
-	constexpr int32 NextInt32(FSquirrelState& State, const int32 Max);
+	SQUIRREL_API constexpr int32 NextInt32(FSquirrelState& State, const int32 Max);
 
-	constexpr int32 NextInt32InRange(FSquirrelState& State, const int32 Min, const int32 Max);
+	SQUIRREL_API constexpr int32 NextInt32InRange(FSquirrelState& State, const int32 Min, const int32 Max);
 
-	constexpr double NextReal(FSquirrelState& State);
+	SQUIRREL_API constexpr double NextReal(FSquirrelState& State);
 
-	constexpr double NextRealInRange(FSquirrelState& State, const double Min, const double Max);
+	SQUIRREL_API constexpr double NextRealInRange(FSquirrelState& State, const double Min, const double Max);
 
 	/**
 	 * Roll for a deterministic chance of an event occurring.
@@ -87,13 +87,13 @@ namespace Squirrel
 	 * @param RollModifier A modifier to adjust the likelihood of the occurence. Must be a value between -100 and 100
 	 * @return True if the event should occur
 	 */
-	[[nodiscard]] constexpr bool RollChance(FSquirrelState& State, double& Roll, const double Chance, const double RollModifier);
+	SQUIRREL_API [[nodiscard]] constexpr bool RollChance(FSquirrelState& State, double& Roll, const double Chance, const double RollModifier);
 
 	/**
 	 * Round a float to an int with a chanced result, where the result is determined by the decimal.
 	 * Example: Value = 3.25 has a 25% chance to return 4 and a 75% chance to return 3.
 	 */
-	[[nodiscard]] constexpr int32 RoundWithWeightByFraction(FSquirrelState& State, double Value);
+	SQUIRREL_API [[nodiscard]] constexpr int32 RoundWithWeightByFraction(FSquirrelState& State, double Value);
 }
 
 /**
@@ -108,6 +108,8 @@ public:
 	USquirrel();
 
 	virtual void PostInitProperties() override;
+
+	FSquirrelState& GetState() { return State; }
 
 	UFUNCTION(BlueprintCallable, Category = "Squirrel")
 	void Jump(const int32 NewPosition);

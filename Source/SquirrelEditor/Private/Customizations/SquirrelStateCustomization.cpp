@@ -9,7 +9,7 @@
 
 TSharedRef<IPropertyTypeCustomization> FSquirrelStateCustomization::MakeInstance()
 {
-	return MakeShareable(new FSquirrelStateCustomization);
+	return MakeShared<FSquirrelStateCustomization>();
 }
 
 void FSquirrelStateCustomization::CustomizeHeader(TSharedRef<IPropertyHandle> PropertyHandle,
